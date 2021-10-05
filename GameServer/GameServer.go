@@ -52,15 +52,9 @@ func (g *GameServer) Handler(conn net.Conn) {
 	// 当前连接的业务处理
 	fmt.Println("new conn...")
 
-	user := NewUserAgent(conn)
+	user := NewUserAgent(conn, g)
 
-	// 用户上线,创建用户代理,并加入到Server的用户代理Map中
-	g.mapLock.Lock()
-	g.UserAgentMap[user.Name] = user
-	g.mapLock.Unlock()
-
-	// 广播用户上线消息
-	g.BroadCast(user, "已经上线")
+	user.Online()
 
 	// 接收用户消息
 	go func() {
@@ -68,7 +62,7 @@ func (g *GameServer) Handler(conn net.Conn) {
 		for {
 			n, err := conn.Read(buff)
 			if n == 0 {
-				g.BroadCast(user, "下线")
+				user.Offline()
 				return
 			}
 
@@ -80,8 +74,8 @@ func (g *GameServer) Handler(conn net.Conn) {
 			// 提取消息 去除消息尾部'\n'
 			msg := string(buff[:n-1])
 
-			// 广播消息
-			g.BroadCast(user, msg)
+			// 用户处理消息
+			user.DoMessage(msg)
 		}
 	}()
 
