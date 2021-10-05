@@ -2,5 +2,8 @@
 .idea
 .vscode
 
+# vendor
+vendor
+
 # Log File
 *.log

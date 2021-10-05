@@ -16,12 +16,12 @@ func NewWebServer(port int) *WebServer {
 	return server
 }
 
-func (webServer *WebServer) Start() {
+func (w *WebServer) Start() {
 	r := gin.Default()
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
 		})
 	})
-	r.Run(fmt.Sprintf(":%d", webServer.Port))
+	r.Run(fmt.Sprintf(":%d", w.Port))
 }
