@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"sync"
+	"time"
 )
 
 type GameServer struct {
@@ -56,6 +57,8 @@ func (g *GameServer) Handler(conn net.Conn) {
 
 	user.Online()
 
+	isAlive := make(chan bool)
+
 	// 接收用户消息
 	go func() {
 		buff := make([]byte, 2048)
@@ -79,8 +82,23 @@ func (g *GameServer) Handler(conn net.Conn) {
 		}
 	}()
 
-	// 阻塞当前 Handler
-	select {}
+	for {
+		// 阻塞当前 Handler
+		select {
+		case <-isAlive:
+		case <-time.After(time.Second * 300):
+			user.SendMsg("超时下线了")
+
+			// 销毁资源
+			close(user.C)
+
+			// 关闭连接 关闭连接后会触发用户 Offline 操作
+			conn.Close()
+
+			// 退出Handler
+			return
+		}
+	}
 }
 
 func (g *GameServer) Start() {
