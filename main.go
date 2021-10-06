@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	fmt.Println("Start Main")
+	fmt.Println("Start Server")
 
 	go func() {
 		fmt.Println("Start WebServer")

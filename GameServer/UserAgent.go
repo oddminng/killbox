@@ -88,15 +88,14 @@ func (u *UserAgent) DoMessage(msg string) {
 			u.SendMsg("消息格式不正确，请使用\"to|张三|你好啊\"格式\n")
 			return
 		}
-		remoteUser, isOk := u.gameServer.UserAgentMap[remoteName]
-		if !isOk {
-			u.SendMsg("该用户不存在\n")
-			return
-		}
-
 		msgContent := msgSlice[2]
 		if msgContent == "" {
 			u.SendMsg("无消息内容，请重发\n")
+			return
+		}
+		remoteUser, isOk := u.gameServer.UserAgentMap[remoteName]
+		if !isOk {
+			u.SendMsg("该用户不存在\n")
 			return
 		}
 		remoteUser.SendMsg(fmt.Sprintf("[%s]对您说:%s", u.Name, msgContent))
