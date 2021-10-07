@@ -79,6 +79,8 @@ func (g *GameServer) Handler(conn net.Conn) {
 
 			// 用户处理消息
 			user.DoMessage(msg)
+
+			isAlive <- true
 		}
 	}()
 
@@ -86,7 +88,7 @@ func (g *GameServer) Handler(conn net.Conn) {
 		// 阻塞当前 Handler
 		select {
 		case <-isAlive:
-		case <-time.After(time.Second * 300):
+		case <-time.After(time.Second * 30):
 			user.SendMsg("超时下线了")
 
 			// 销毁资源
