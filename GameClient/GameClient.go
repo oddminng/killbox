@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"time"
 )
 
 type GameClient struct {
@@ -159,6 +160,31 @@ func (c *GameClient) privateChat() {
 			return
 		}
 	}
+}
+
+func (c *GameClient) Login(userName string, userPassword string) {
+	c.Name = userName
+	sendMsg := fmt.Sprintf("login|%s|%s\n", userName, userPassword)
+	if _, err := c.conn.Write([]byte(sendMsg)); err != nil {
+		fmt.Println("conn Write err:", err)
+	}
+}
+
+func (c *GameClient) KeepAlive() {
+	go func() {
+		ticker := time.NewTicker(time.Second * 10)
+		for {
+			select {
+			case <-ticker.C:
+				sendMsg := "keepalive\n"
+				if _, err := c.conn.Write([]byte(sendMsg)); err != nil {
+					fmt.Println("conn Write err:", err)
+					ticker.Stop()
+					return
+				}
+			}
+		}
+	}()
 }
 
 func (c *GameClient) Run() {

@@ -55,9 +55,8 @@ func (g *GameServer) Handler(conn net.Conn) {
 
 	user := NewUserAgent(conn, g)
 
-	user.Online()
-
-	isAlive := make(chan bool)
+	clientAliveTimer := time.After(time.Second * 30)
+	aliveTicker := time.NewTicker(time.Second * 10)
 
 	// 接收用户消息
 	go func() {
@@ -80,16 +79,17 @@ func (g *GameServer) Handler(conn net.Conn) {
 			// 用户处理消息
 			user.DoMessage(msg)
 
-			isAlive <- true
+			if user.isLogin {
+				clientAliveTimer = time.After(time.Second * 30)
+			}
 		}
 	}()
 
 	for {
 		// 阻塞当前 Handler
 		select {
-		case <-isAlive:
-		case <-time.After(time.Second * 30):
-			user.SendMsg("超时下线了")
+		case <-clientAliveTimer:
+			user.SendMsg("超时下线了\n")
 
 			// 销毁资源
 			close(user.C)
@@ -99,6 +99,8 @@ func (g *GameServer) Handler(conn net.Conn) {
 
 			// 退出Handler
 			return
+		case <-aliveTicker.C:
+			user.SendMsg(fmt.Sprintf("keepalive|%s\n", time.Now().String()))
 		}
 	}
 }
